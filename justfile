@@ -58,7 +58,7 @@ _init-agents:
 new idea:
     #!/usr/bin/env bash
     echo "🧠 Generating PRD from idea..."
-    amp "Load the prd-generator skill. Create a detailed PRD for: {{idea}}. Save to prd.md"
+    echo "Load the prd-generator skill. Create a detailed PRD for: {{idea}}. Save to prd.md" | amp -x --dangerously-allow-all
     if [ -f "prd.md" ]; then
         echo "✅ PRD created: prd.md"
         echo "Next: just convert prd.md"
@@ -73,7 +73,7 @@ convert prd_file:
     fi
     mkdir -p scripts/ralph
     echo "🔄 Converting PRD to Ralph stories..."
-    amp "Load the prd-converter skill. Convert {{prd_file}} to scripts/ralph/prd.json"
+    echo "Load the prd-converter skill. Convert {{prd_file}} to scripts/ralph/prd.json" | amp -x --dangerously-allow-all
     if [ -f "scripts/ralph/prd.json" ]; then
         echo "✅ Converted!"
         jq -r '.userStories[] | "  ⬜ [" + .id + "] " + .title' scripts/ralph/prd.json
@@ -148,40 +148,40 @@ _setup-ralph:
     
     # Create ralph.sh
     cat > scripts/ralph/ralph.sh << 'EOF'
-    #!/bin/bash
-    set -e
-    MAX=$${1:-10}
-    DIR="$$(cd "$$(dirname "$$0")" && pwd)"
-    PRD="$$DIR/prd.json"
-    
-    all_done() { [ "$$(jq '[.userStories[] | select(.passes==false)] | length' "$$PRD")" -eq 0 ]; }
-    
-    for i in $$(seq 1 $$MAX); do
-        all_done && echo "✅ Complete!" && exit 0
-        NEXT=$$(jq -r '[.userStories[] | select(.passes==false)] | sort_by(.priority) | .[0].title' "$$PRD")
-        echo "[$$i/$$MAX] $$NEXT"
-        cat "$$DIR/prompt.md" | amp --print
-    done
-    echo "⚠️ Max iterations. Run 'just go' to continue."
-    EOF
+#!/bin/bash
+set -e
+MAX=${1:-10}
+DIR="$(cd "$(dirname "$0")" && pwd)"
+PRD="$DIR/prd.json"
+
+all_done() { [ "$(jq '[.userStories[] | select(.passes==false)] | length' "$PRD")" -eq 0 ]; }
+
+for i in $(seq 1 $MAX); do
+    all_done && echo "✅ Complete!" && exit 0
+    NEXT=$(jq -r '[.userStories[] | select(.passes==false)] | sort_by(.priority) | .[0].title' "$PRD")
+    echo "[$i/$MAX] $NEXT"
+    cat "$DIR/prompt.md" | amp -x --dangerously-allow-all
+done
+echo "⚠️ Max iterations. Run 'just go' to continue."
+EOF
     chmod +x scripts/ralph/ralph.sh
     
     # Create prompt.md
     if [ ! -f "scripts/ralph/prompt.md" ]; then
         cat > scripts/ralph/prompt.md << 'EOF'
-    # Ralph Iteration
-    
-    1. Read scripts/ralph/prd.json - find highest priority story where passes: false
-    2. Read scripts/ralph/progress.txt - context from previous iterations
-    3. Read AGENTS.md - project conventions
-    
-    Implement ONLY that one story. When done:
-    - Commit: "[Ralph] {id}: {title}"
-    - Update prd.json: set passes to true  
-    - Append learnings to progress.txt
-    
-    If ALL stories complete, output: COMPLETE
-    EOF
+# Ralph Iteration
+
+1. Read scripts/ralph/prd.json - find highest priority story where passes: false
+2. Read scripts/ralph/progress.txt - context from previous iterations
+3. Read AGENTS.md - project conventions
+
+Implement ONLY that one story. When done:
+- Commit: "[Ralph] {id}: {title}"
+- Update prd.json: set passes to true  
+- Append learnings to progress.txt
+
+If ALL stories complete, output: COMPLETE
+EOF
     fi
     
     # Create progress.txt
