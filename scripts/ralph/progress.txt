@@ -15,3 +15,59 @@
 - Implemented RiskWindow dataclass with events and assets lists
 - Implemented AssetRisk dataclass with optional next_event
 - Verified imports work correctly
+
+## US-003: Create edrr/models/config.py
+- Created edrr/models/config.py with full type hints
+- Implemented RiskThresholds dataclass with low/elevated/high/danger levels
+- Defined TIME_MULTIPLIERS dict: 24h+:1.0, 12-24h:1.2, 4-12h:1.5, 1-4h:1.8, <1h:2.0
+- Defined ASSET_EVENT_CORRELATIONS for SPY, QQQ, BTC, GOLD
+- Implemented Config dataclass with polling intervals, thresholds, and API keys
+- Verified imports work correctly
+
+## US-004: Create edrr/sources/base.py
+- Created edrr/sources/base.py with full type hints
+- Implemented abstract EventSource class using ABC
+- Defined async fetch_events() method returning List[Event]
+- Defined get_source_name() method returning str
+- Added docstrings for both abstract methods
+- Verified imports work correctly
+
+## US-005: Create edrr/sources/economic_calendar.py
+- Created edrr/sources/economic_calendar.py extending EventSource
+- Implemented ECONOMIC_EVENTS list with FOMC, CPI, NFP, GDP, FOMC Minutes, PCE, Retail Sales, Jobless Claims
+- Each event has an impact_hours value for impact window calculation
+- Implemented async fetch_events() returning List[Event] with Tier 1 classification
+- All events affect SPY, QQQ, BTC, GOLD
+- Implemented get_source_name() returning "Economic Calendar"
+- Verified imports work correctly
+
+## US-006: Create edrr/sources/fed_calendar.py
+- Created edrr/sources/fed_calendar.py extending EventSource
+- Implemented FED_SPEAKERS list with Fed Chair Powell, Vice Chair, NY Fed President, and regional Fed Governors
+- Each speaker has impact_hours value (1-2 hours) for impact window calculation
+- Implemented async fetch_events() returning List[Event] with Tier 2 classification
+- All events use FED_SPEAKER category and affect SPY, QQQ, BTC, GOLD
+- Implemented get_source_name() returning "Fed Calendar"
+- Verified imports work correctly
+
+## US-007: Create edrr/sources/earnings_calendar.py
+- Created edrr/sources/earnings_calendar.py extending EventSource
+- Implemented HIGH_IMPACT_TICKERS list with AAPL, MSFT, NVDA, GOOGL, AMZN, TSLA, META
+- Set IMPACT_HOURS to 14 (covers after-hours + next morning trading)
+- Implemented async fetch_events() returning List[Event] with Tier 1 classification
+- Affected assets include SPY, QQQ; NVDA/TSLA also affect BTC due to crypto correlation
+- Implemented get_source_name() returning "Earnings Calendar"
+- Verified imports work correctly
+
+## US-008: Create edrr/sources/news_monitor.py
+- Created edrr/sources/news_monitor.py extending EventSource
+- Implemented EMERGING_KEYWORDS dict for geopolitical, presidential, and regulatory event detection
+- Implemented NewsMonitorSource class with api_key and api_url configuration
+- Implemented async fetch_events() that polls news API and classifies articles
+- Implemented _poll_news_api() using aiohttp to fetch articles from NewsAPI
+- Implemented _classify_article() to detect Tier 3 events and create Event objects
+- Implemented _detect_category() for keyword-based category detection
+- Implemented _determine_affected_assets() to map events to SPY, QQQ, BTC, GOLD
+- Impact windows: geopolitical 24h, regulatory 12h, default 6h
+- Implemented get_source_name() returning "News Monitor"
+- Verified imports work correctly
