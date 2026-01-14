@@ -1,0 +1,351 @@
+{
+  "project": "Event-Driven Risk Radar (EDRR)",
+  "branchName": "ralph/event-driven-risk-radar",
+  "description": "A forward-looking early warning system that identifies high-risk trading windows before they happen for equities, Bitcoin, and gold.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Initialize project structure",
+      "description": "As a developer, I need the project scaffolding.",
+      "acceptanceCriteria": [
+        "Create directory structure: edrr/, edrr/sources/, edrr/analysis/, edrr/outputs/, edrr/api/",
+        "Create requirements.txt with dependencies (aiohttp, redis, openai, pydantic, apscheduler)",
+        "Create main.py entry point (empty shell)",
+        "Create all __init__.py files",
+        "Project imports without errors"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Create edrr/models/events.py",
+      "description": "As a developer, I need data models for events and risk windows.",
+      "acceptanceCriteria": [
+        "Create edrr/models/events.py",
+        "Implement Event dataclass with fields: id, title, category, tier, scheduled_time, impact_window, affected_assets",
+        "Implement RiskWindow dataclass with fields: start_time, end_time, level, events, assets",
+        "Implement AssetRisk dataclass with fields: asset, score, status, next_event",
+        "Add EventCategory and EventTier enums",
+        "Include type hints",
+        "File imports correctly"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Create edrr/models/config.py",
+      "description": "As a developer, I need configuration models and defaults.",
+      "acceptanceCriteria": [
+        "Create edrr/models/config.py",
+        "Implement Config dataclass with polling intervals, thresholds, API keys",
+        "Define risk level thresholds (1-10 scale)",
+        "Define time multipliers (24h+: 1.0, 12-24h: 1.2, 4-12h: 1.5, 1-4h: 1.8, <1h: 2.0)",
+        "Include default asset-event correlation weights",
+        "File imports correctly"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Create edrr/sources/base.py",
+      "description": "As a developer, I need a base class for event sources.",
+      "acceptanceCriteria": [
+        "Create edrr/sources/base.py",
+        "Implement abstract EventSource class",
+        "Define async fetch_events() method signature",
+        "Define get_source_name() method",
+        "Include type hints",
+        "File imports correctly"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Create edrr/sources/economic_calendar.py",
+      "description": "As a developer, I need to fetch economic calendar events (FOMC, CPI, NFP, GDP).",
+      "acceptanceCriteria": [
+        "Create edrr/sources/economic_calendar.py",
+        "Implement EconomicCalendarSource extending EventSource",
+        "Implement fetch_events() to return scheduled economic events",
+        "Map events to Tier 1 category with appropriate impact windows",
+        "File imports correctly"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Create edrr/sources/fed_calendar.py",
+      "description": "As a developer, I need to fetch Federal Reserve speaker schedules.",
+      "acceptanceCriteria": [
+        "Create edrr/sources/fed_calendar.py",
+        "Implement FedCalendarSource extending EventSource",
+        "Implement fetch_events() to return Fed speaker events",
+        "Map events to Tier 2 category with 1-2 hour impact windows",
+        "File imports correctly"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Create edrr/sources/earnings_calendar.py",
+      "description": "As a developer, I need to fetch mega-cap earnings schedules.",
+      "acceptanceCriteria": [
+        "Create edrr/sources/earnings_calendar.py",
+        "Implement EarningsCalendarSource extending EventSource",
+        "Implement fetch_events() filtered to high-impact names (AAPL, MSFT, NVDA, GOOGL, AMZN, TSLA, META)",
+        "Map events to Tier 1 category with after-hours + next morning impact",
+        "File imports correctly"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Create edrr/sources/news_monitor.py",
+      "description": "As a developer, I need to monitor news feeds for emerging events.",
+      "acceptanceCriteria": [
+        "Create edrr/sources/news_monitor.py",
+        "Implement NewsMonitorSource extending EventSource",
+        "Implement fetch_events() to poll news API feeds",
+        "Handle Tier 3 emerging events (geopolitical, unscheduled presidential, regulatory)",
+        "File imports correctly"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Create edrr/sources/crypto_events.py",
+      "description": "As a developer, I need to fetch crypto-specific events.",
+      "acceptanceCriteria": [
+        "Create edrr/sources/crypto_events.py",
+        "Implement CryptoEventsSource extending EventSource",
+        "Handle Tier 4 events: protocol upgrades, token unlocks, exchange events",
+        "Include SEC ETF deadlines and regulatory events",
+        "File imports correctly"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Create edrr/analysis/llm_client.py",
+      "description": "As a developer, I need an LLM client for event analysis.",
+      "acceptanceCriteria": [
+        "Create edrr/analysis/llm_client.py",
+        "Implement LLMClient class with OpenAI API integration",
+        "Add async analyze_event() method for impact assessment",
+        "Add async classify_news() method for event discovery",
+        "Include retry logic and error handling",
+        "File imports correctly"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Create edrr/analysis/impact_scorer.py",
+      "description": "As a developer, I need to calculate event impact scores.",
+      "acceptanceCriteria": [
+        "Create edrr/analysis/impact_scorer.py",
+        "Implement ImpactScorer class",
+        "Add calculate_score() method using base impact + time multipliers",
+        "Apply asset-event correlation weights from config",
+        "Return scores on 1-10 scale",
+        "File imports correctly"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Create edrr/analysis/risk_aggregator.py",
+      "description": "As a developer, I need to aggregate risks across events and detect clustering.",
+      "acceptanceCriteria": [
+        "Create edrr/analysis/risk_aggregator.py",
+        "Implement RiskAggregator class",
+        "Add get_current_risk() method returning per-asset risk levels",
+        "Add detect_clustering() method for compound risk identification",
+        "Identify danger zones: intraday windows, high-risk days, high-risk weeks",
+        "File imports correctly"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Create edrr/outputs/calendar_view.py",
+      "description": "As a developer, I need to generate the risk calendar view output.",
+      "acceptanceCriteria": [
+        "Create edrr/outputs/calendar_view.py",
+        "Implement CalendarView class",
+        "Add generate_today() method",
+        "Add generate_week() method",
+        "Format output matching PRD example (TODAY, TOMORROW, WEEK SUMMARY)",
+        "File imports correctly"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Create edrr/outputs/alerts.py",
+      "description": "As a developer, I need to generate and send danger zone alerts.",
+      "acceptanceCriteria": [
+        "Create edrr/outputs/alerts.py",
+        "Implement AlertManager class",
+        "Add check_thresholds() method to detect when alerts should fire",
+        "Add send_alert() method (console output for v1)",
+        "Include alert logic: threshold crossing, danger zone entry, new high-impact event, clustering",
+        "File imports correctly"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Create edrr/outputs/recommendations.py",
+      "description": "As a developer, I need to generate trading recommendations.",
+      "acceptanceCriteria": [
+        "Create edrr/outputs/recommendations.py",
+        "Implement RecommendationEngine class",
+        "Map risk levels to recommendations: 1-3 trade normally, 4-5 awareness, 6-7 reduce, 8-9 close/hedge, 10 do not trade",
+        "Add get_recommendation() method returning actionable guidance",
+        "File imports correctly"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Create edrr/scheduler.py",
+      "description": "As a developer, I need a scheduler for continuous operations.",
+      "acceptanceCriteria": [
+        "Create edrr/scheduler.py",
+        "Implement Scheduler class using APScheduler",
+        "Schedule calendar polling hourly",
+        "Schedule news monitoring every 5 minutes",
+        "Schedule risk recalculation every minute when events within 2 hours",
+        "File imports correctly"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Create edrr/api/endpoints.py",
+      "description": "As a developer, I need API endpoints for trading system integration.",
+      "acceptanceCriteria": [
+        "Create edrr/api/endpoints.py",
+        "Implement get_current_risk() endpoint",
+        "Implement get_calendar() endpoint",
+        "Implement get_recommendation() endpoint for pre-trade checks",
+        "Use aiohttp or FastAPI",
+        "File imports correctly"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Create edrr/engine.py",
+      "description": "As a developer, I need the main engine orchestrating all components.",
+      "acceptanceCriteria": [
+        "Create edrr/engine.py",
+        "Implement RiskRadarEngine class",
+        "Initialize all sources, analyzers, and outputs",
+        "Add start() method to begin monitoring",
+        "Add get_status() method returning current risk for all assets",
+        "File imports correctly"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Implement main.py entry point",
+      "description": "As a developer, I need a working entry point to run the radar.",
+      "acceptanceCriteria": [
+        "Update main.py with CLI interface",
+        "Add --mode flag for 'daemon' (continuous) or 'check' (one-time)",
+        "Add --asset flag to filter by asset",
+        "Initialize and run RiskRadarEngine",
+        "Print calendar view on startup",
+        "File runs without errors"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Create tests for models",
+      "description": "As a developer, I need tests for the data models.",
+      "acceptanceCriteria": [
+        "Create tests/test_models.py",
+        "Test Event, RiskWindow, AssetRisk creation",
+        "Test Config defaults and validation",
+        "Test enum values for EventCategory and EventTier",
+        "All tests pass"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Create tests for impact scoring",
+      "description": "As a developer, I need tests for impact score calculation.",
+      "acceptanceCriteria": [
+        "Create tests/test_scoring.py",
+        "Test time multiplier calculations",
+        "Test asset-event correlation weighting",
+        "Test score bounds (1-10)",
+        "All tests pass"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Final integration and testing",
+      "description": "As a developer, I need to verify everything works together.",
+      "acceptanceCriteria": [
+        "All modules import from main.py",
+        "Entry point runs without errors",
+        "All type hints pass mypy",
+        "Calendar view generates correctly",
+        "Risk scores calculate correctly",
+        "README is complete"
+      ],
+      "priority": 99,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
