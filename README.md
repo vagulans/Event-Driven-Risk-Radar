@@ -1,162 +1,120 @@
-# Auto-Ralph Boilerplate
+# Event-Driven Risk Radar (EDRR)
 
-Clone → Drop PRD → Let Amp + Ralph build it.
+A forward-looking early warning system that identifies high-risk trading windows before they happen for equities, Bitcoin, and gold.
+
+## Features
+
+- **Multi-Source Event Aggregation**: Pulls from economic calendars, Fed speaker schedules, mega-cap earnings, news feeds, and crypto events
+- **Intelligent Risk Scoring**: 1-10 risk scale with time-based multipliers and asset-event correlation weights
+- **Cluster Detection**: Identifies compound risk when multiple events occur in tight windows
+- **Actionable Recommendations**: Maps risk levels to trading guidance (trade normally → do not trade)
+- **Real-Time Monitoring**: Continuous polling with configurable intervals
 
 ## Quick Start
 
 ```bash
-# 1. Clone
-git clone https://github.com/YOU/auto-ralph-boilerplate my-project
-cd my-project
+# Install dependencies
+pip install -r requirements.txt
 
-# 2. Initialize (installs Amp skills)
-just init
+# One-time risk check
+python3 -m edrr.main --mode check
 
-# 3. Option A: Generate PRD from idea
-just new "a Python CLI for managing AWS Lambda functions"
+# Filter by asset
+python3 -m edrr.main --mode check --asset BTC
 
-# 3. Option B: Drop existing PRD
-cp ~/my-prd.md ./prd.md
-
-# 4. Convert PRD to Ralph stories
-just convert prd.md
-
-# 5. Let Ralph build it
-just go 20
+# Continuous monitoring (daemon mode)
+python3 -m edrr.main --mode daemon
 ```
 
-## Commands
+## Environment Variables
 
-| Command | Description |
-|---------|-------------|
-| `just init` | First-time setup (install skills, init git) |
-| `just new "idea"` | Generate PRD from rough idea |
-| `just convert FILE.md` | Convert markdown PRD to stories |
-| `just go [N]` | Run Ralph loop (default 10 iterations) |
-| `just step` | Single iteration (human-in-the-loop) |
-| `just status` | Show progress |
-| `just log` | Show recent progress log |
-| `just watch` | Watch progress in real-time |
-| `just reset` | Archive current project and start fresh |
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | OpenAI API key for LLM-powered event analysis |
+| `NEWS_API_KEY` | NewsAPI key for emerging event detection |
+| `REDIS_URL` | Optional Redis URL for caching |
 
-## How It Works
+## Project Structure
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Your Idea  │ ──▶ │     PRD     │ ──▶ │   Stories   │ ──▶ │    Code     │
-│             │     │   (prd.md)  │     │ (prd.json)  │     │             │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-                         │                    │                    │
-                    prd-generator        prd-converter          ralph
-                       skill                skill               loop
+edrr/
+├── models/
+│   ├── events.py      # Event, RiskWindow, AssetRisk dataclasses
+│   └── config.py      # Config, thresholds, time multipliers
+├── sources/
+│   ├── base.py              # Abstract EventSource class
+│   ├── economic_calendar.py # FOMC, CPI, NFP, GDP events
+│   ├── fed_calendar.py      # Fed speaker schedules
+│   ├── earnings_calendar.py # Mega-cap earnings (AAPL, NVDA, etc.)
+│   ├── news_monitor.py      # Emerging events from news feeds
+│   └── crypto_events.py     # Protocol upgrades, token unlocks, SEC
+├── analysis/
+│   ├── llm_client.py      # OpenAI-powered event analysis
+│   ├── impact_scorer.py   # Risk score calculation
+│   └── risk_aggregator.py # Per-asset risk aggregation
+├── outputs/
+│   ├── calendar_view.py     # Daily/weekly calendar generation
+│   ├── alerts.py            # Threshold-based alerting
+│   └── recommendations.py   # Trading action guidance
+├── api/
+│   └── endpoints.py   # REST API for trading system integration
+├── scheduler.py       # APScheduler-based job scheduling
+├── engine.py          # Main orchestration engine
+└── main.py           # CLI entry point
 ```
 
-1. **PRD Generator Skill**: Transforms vague ideas into detailed PRDs with file names, classes, and code signatures
-2. **PRD Converter Skill**: Breaks PRD into atomic stories (one context window each)
-3. **Ralph Loop**: Iteratively implements each story, commits, and moves to next
+## Risk Levels
 
-## Prerequisites
+| Score | Status | Recommendation |
+|-------|--------|----------------|
+| 1-3 | LOW | Trade normally |
+| 4-5 | MODERATE | Heightened awareness |
+| 6-7 | ELEVATED | Reduce exposure |
+| 8-9 | HIGH | Close positions / hedge |
+| 10 | CRITICAL | Do not trade |
 
-- [amp CLI](https://ampcode.com) installed and authenticated
-- [just](https://github.com/casey/just) command runner
-- `jq` for JSON processing
-- `git`
+## Event Tiers
+
+- **Tier 1**: Major scheduled events (FOMC, CPI, mega-cap earnings)
+- **Tier 2**: Fed speakers, secondary data releases
+- **Tier 3**: Emerging/breaking events (geopolitical, regulatory)
+- **Tier 4**: Crypto-specific (protocol upgrades, token unlocks)
+
+## Time Multipliers
+
+Events closer in time carry higher risk multipliers:
+
+| Time to Event | Multiplier |
+|---------------|------------|
+| >24 hours | 1.0x |
+| 12-24 hours | 1.2x |
+| 4-12 hours | 1.5x |
+| 1-4 hours | 1.8x |
+| <1 hour | 2.0x |
+
+## API Endpoints
+
+When running in daemon mode, the following endpoints are available:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /risk` | Current risk for all assets |
+| `GET /risk/{asset}` | Current risk for specific asset |
+| `GET /calendar/today` | Today's event calendar |
+| `GET /calendar/week` | Week-ahead calendar |
+| `GET /recommendation/{asset}` | Trading recommendation |
+| `GET /health` | Health check |
+
+## Running Tests
 
 ```bash
-# macOS
-brew install just jq
-
-# Check amp
-amp --version
+python3 -m pytest tests/ -v
 ```
 
-## File Structure
-
-```
-auto-ralph-boilerplate/
-├── justfile              # All commands
-├── skills/
-│   ├── prd-generator/    # Idea → PRD skill
-│   │   └── SKILL.md
-│   └── prd-converter/    # PRD → Stories skill
-│       └── SKILL.md
-├── scripts/ralph/        # Created on first run
-│   ├── ralph.sh          # The loop script
-│   ├── prompt.md         # Per-iteration prompt
-│   ├── prd.json          # Your stories
-│   └── progress.txt      # Learning log
-└── AGENTS.md             # Project conventions (Ralph updates this)
-```
-
-## Tips
-
-### Write Better PRDs
-
-The more specific your PRD, the better Ralph performs:
-
-```markdown
-# Good PRD
-## Module: Auth (`auth/`)
-**Files:**
-- `models.py` - User and Session dataclasses
-- `jwt.py` - Token generation/validation
-
-**Key Classes:**
-```python
-@dataclass
-class User:
-    id: str
-    email: str
-    hashed_password: str
-```
-
-# Vague PRD (Ralph will struggle)
-## Authentication
-Handle user login and sessions
-```
-
-### Human-in-the-Loop
-
-For complex projects, use `just step` to run one iteration at a time:
+## Type Checking
 
 ```bash
-just step          # Run one iteration
-just status        # Check what happened
-just edit-prd      # Adjust stories if needed
-just step          # Next iteration
-```
-
-### Recovering from Stuck States
-
-If Ralph gets stuck:
-
-```bash
-just status        # See where it's stuck
-just edit-prd      # Simplify the stuck story's criteria
-just step          # Try again
-```
-
-## Customization
-
-### Custom Prompt
-
-Edit `scripts/ralph/prompt.md` to add project-specific instructions:
-
-```markdown
-## Project-Specific Rules
-- Always use async/await for I/O
-- Follow Google Python style guide
-- Use pytest for all tests
-```
-
-### Amp Settings
-
-For large stories, enable auto-handoff in `~/.config/amp/settings.json`:
-
-```json
-{
-  "amp.experimental.autoHandoff": { "context": 90 }
-}
+python3 -m mypy edrr/ --ignore-missing-imports
 ```
 
 ## License

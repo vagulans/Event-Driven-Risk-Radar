@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Tuple
 import uuid
 
 from edrr.models.events import Event, EventCategory, EventTier
@@ -9,15 +9,15 @@ from edrr.sources.base import EventSource
 class EconomicCalendarSource(EventSource):
     """Event source for major economic calendar events (FOMC, CPI, NFP, GDP)."""
 
-    ECONOMIC_EVENTS = [
-        {"name": "FOMC Rate Decision", "impact_hours": 4},
-        {"name": "CPI Release", "impact_hours": 3},
-        {"name": "Non-Farm Payrolls", "impact_hours": 3},
-        {"name": "GDP Release", "impact_hours": 2},
-        {"name": "FOMC Minutes", "impact_hours": 2},
-        {"name": "PCE Inflation", "impact_hours": 2},
-        {"name": "Retail Sales", "impact_hours": 1},
-        {"name": "Jobless Claims", "impact_hours": 1},
+    ECONOMIC_EVENTS: List[Tuple[str, float]] = [
+        ("FOMC Rate Decision", 4),
+        ("CPI Release", 3),
+        ("Non-Farm Payrolls", 3),
+        ("GDP Release", 2),
+        ("FOMC Minutes", 2),
+        ("PCE Inflation", 2),
+        ("Retail Sales", 1),
+        ("Jobless Claims", 1),
     ]
 
     AFFECTED_ASSETS = ["SPY", "QQQ", "BTC", "GOLD"]
@@ -31,14 +31,14 @@ class EconomicCalendarSource(EventSource):
         events: List[Event] = []
         now = datetime.now()
 
-        for event_info in self.ECONOMIC_EVENTS:
+        for name, impact_hours in self.ECONOMIC_EVENTS:
             event = Event(
                 id=f"econ-{uuid.uuid4().hex[:8]}",
-                title=event_info["name"],
+                title=name,
                 category=EventCategory.ECONOMIC,
                 tier=EventTier.TIER_1,
                 scheduled_time=now + timedelta(days=1),
-                impact_window=timedelta(hours=event_info["impact_hours"]),
+                impact_window=timedelta(hours=impact_hours),
                 affected_assets=self.AFFECTED_ASSETS.copy(),
             )
             events.append(event)
