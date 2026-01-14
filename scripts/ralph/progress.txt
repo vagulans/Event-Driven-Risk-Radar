@@ -71,3 +71,89 @@
 - Impact windows: geopolitical 24h, regulatory 12h, default 6h
 - Implemented get_source_name() returning "News Monitor"
 - Verified imports work correctly
+
+## US-009: Create edrr/sources/crypto_events.py
+- Created edrr/sources/crypto_events.py extending EventSource
+- Implemented CRYPTO_EVENTS list with Bitcoin Halving, Ethereum Protocol Upgrade, Major Token Unlock, Exchange Maintenance, Stablecoin Audit Report
+- Implemented REGULATORY_EVENTS list with SEC ETF Decision Deadline, SEC Enforcement Action, CFTC Regulatory Announcement, Congressional Crypto Hearing
+- Each event has impact_hours value for impact window calculation
+- Implemented async fetch_events() returning List[Event] with Tier 4 classification
+- Crypto events affect BTC, ETH; regulatory events also affect SPY, QQQ
+- Implemented get_source_name() returning "Crypto Events"
+- Verified imports work correctly
+
+## US-010: Create edrr/analysis/llm_client.py
+- Created edrr/analysis/llm_client.py with OpenAI API integration
+- Implemented LLMClient class with configurable api_key and model (default: gpt-4o-mini)
+- Implemented async analyze_event() method for impact assessment returning JSON with impact_score, volatility_expectation, direction_bias, key_risks, trading_implications
+- Implemented async classify_news() method for event discovery from headlines/content
+- classify_news() returns is_market_moving, category, tier, affected_assets, impact_hours, confidence
+- Implemented _call_with_retry() with max_retries=3 and exponential backoff
+- Added proper error handling with fallback defaults on JSON parse failures
+- Uses AsyncOpenAI client for async operations
+- Verified imports work correctly
+
+## US-011: Create edrr/analysis/impact_scorer.py
+- Created edrr/analysis/impact_scorer.py with full type hints
+- Implemented ImpactScorer class with configurable Config
+- Implemented calculate_score() method using base_impact * time_multiplier * correlation_weight
+- Implemented _get_base_impact() mapping event tiers to base scores (Tier1: 8.0, Tier2: 5.0, Tier3: 6.0, Tier4: 4.0)
+- Implemented _get_time_multiplier() using TIME_MULTIPLIERS from config (under_1h: 2.0, 1-4h: 1.8, 4-12h: 1.5, 12-24h: 1.2, 24h+: 1.0)
+- Handles events within impact window (post-event) with full multiplier
+- Implemented _get_correlation_weight() using ASSET_EVENT_CORRELATIONS from config
+- Implemented _clamp_score() to ensure scores stay within 1-10 range
+- Verified imports work correctly
+
+## US-012: Create edrr/analysis/risk_aggregator.py
+- Created edrr/analysis/risk_aggregator.py with full type hints
+- Implemented ClusterInfo dataclass for cluster detection results
+- Implemented RiskAggregator class with configurable Config and ImpactScorer
+- Implemented set_events() to set the list of events to aggregate
+- Implemented get_current_risk() returning Dict[str, AssetRisk] for SPY, QQQ, BTC, GOLD
+- Calculates max score per asset from all relevant events and finds next upcoming event
+- Implemented detect_clustering() for compound risk identification with configurable lookhead and window hours
+- Detects when 2+ events occur within the same time window and calculates compound risk bonus
+- Implemented get_danger_zones() returning intraday windows, high-risk days, high-risk weeks
+- _get_intraday_windows() finds elevated+ risk windows for today
+- _get_high_risk_days() finds high+ risk days for next 7 days
+- _get_high_risk_weeks() finds danger-level weeks for next 30 days
+- Implemented _calculate_compound_risk() with cluster bonus (up to +3 for multiple events)
+- Verified imports work correctly
+
+## US-013: Create edrr/outputs/calendar_view.py
+- Created edrr/outputs/calendar_view.py with full type hints
+- Implemented CalendarView class with configurable RiskAggregator and Config
+- Defined RISK_LABELS mapping: 1-3 LOW, 4-5 MODERATE, 6-7 ELEVATED, 8-9 HIGH, 10 CRITICAL
+- Implemented generate_today() method returning formatted view of today's events
+- Implemented generate_week() method returning 7-day view with summary
+- Format matches PRD example: TODAY/TOMORROW/DAY NAME with date, tree-style event list
+- Week summary includes: high-risk window count, recommended blackouts, elevated assets
+- Helper methods: _get_risk_label(), _format_time_range(), _format_assets(), _get_events_for_date()
+- _calculate_event_score() uses impact_scorer to get max score across affected assets
+- Verified imports work correctly
+
+## US-014: Create edrr/outputs/alerts.py
+- Created edrr/outputs/alerts.py with full type hints
+- Implemented AlertType enum (THRESHOLD_CROSSING, DANGER_ZONE_ENTRY, NEW_HIGH_IMPACT_EVENT, CLUSTERING_DETECTED)
+- Implemented Alert dataclass with alert_type, title, message, severity, timestamp, assets, optional event
+- Implemented AlertManager class with configurable RiskAggregator and Config
+- Tracks _previous_risks, _known_events, _alerted_clusters to avoid duplicate alerts
+- Implemented check_thresholds() method that detects when alerts should fire
+- _check_threshold_crossings() detects when asset scores cross elevated/high/danger thresholds
+- _check_danger_zone_entry() detects when currently in an active danger zone window
+- _check_new_high_impact_events() detects new Tier 1 events not seen before
+- _check_clustering() detects event clusters via RiskAggregator.detect_clustering()
+- Implemented send_alert() method with console output formatting
+- Output includes severity label, alert type, title, timestamp, severity score, assets, message, and related event
+- Verified imports work correctly
+
+## US-015: Create edrr/outputs/recommendations.py
+- Created edrr/outputs/recommendations.py with full type hints
+- Implemented Recommendation dataclass with asset, risk_level, action, guidance, optional next_event
+- Implemented RecommendationEngine class with configurable Config
+- Defined RECOMMENDATIONS dict mapping risk level ranges to action/guidance tuples
+- 1-3: TRADE NORMALLY, 4-5: AWARENESS, 6-7: REDUCE EXPOSURE, 8-9: CLOSE/HEDGE, 10: DO NOT TRADE
+- Implemented get_recommendation() method returning Recommendation for a single AssetRisk
+- Implemented get_all_recommendations() method for batch processing multiple assets
+- Implemented format_recommendation() method for console-friendly output
+- Verified imports work correctly
