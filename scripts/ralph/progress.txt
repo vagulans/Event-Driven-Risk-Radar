@@ -157,3 +157,17 @@
 - Implemented get_all_recommendations() method for batch processing multiple assets
 - Implemented format_recommendation() method for console-friendly output
 - Verified imports work correctly
+
+## US-016: Create edrr/scheduler.py
+- Created edrr/scheduler.py with full type hints
+- Implemented Scheduler class using APScheduler's AsyncIOScheduler
+- Constructor accepts optional callbacks: on_calendar_poll, on_news_monitor, on_risk_recalculate
+- Implemented start() method that schedules all jobs with IntervalTrigger
+- Calendar polling scheduled hourly (1 hour interval)
+- News monitoring scheduled every 5 minutes (5 minute interval)
+- Risk recalculation scheduled every minute (1 minute interval)
+- Implemented _check_and_recalculate_risk() that only triggers callback when events within 2 hours
+- Implemented stop() and is_running() methods for lifecycle management
+- Implemented set_events() to update event list for imminent event detection
+- Added trigger_*() methods for manual triggering of each job type
+- Verified imports work correctly
