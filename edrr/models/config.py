@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
@@ -68,6 +69,6 @@ class Config:
         default_factory=lambda: {k: v.copy() for k, v in ASSET_EVENT_CORRELATIONS.items()}
     )
     
-    openai_api_key: Optional[str] = None
-    news_api_key: Optional[str] = None
-    redis_url: Optional[str] = None
+    openai_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY"))
+    news_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("NEWS_API_KEY"))
+    redis_url: Optional[str] = field(default_factory=lambda: os.environ.get("REDIS_URL"))

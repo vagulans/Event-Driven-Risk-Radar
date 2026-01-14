@@ -9,7 +9,10 @@ from edrr.models.events import Event, EventCategory, EventTier
 
 class LLMClient:
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"):
-        self.client = AsyncOpenAI(api_key=api_key)
+        self.api_key = api_key
+        self.client: Optional[AsyncOpenAI] = None
+        if api_key:
+            self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
         self.max_retries = 3
         self.retry_delay = 1.0
@@ -80,6 +83,9 @@ Respond with valid JSON only."""
             }
 
     async def _call_with_retry(self, prompt: str) -> str:
+        if not self.client:
+            raise RuntimeError("LLM client not configured - OPENAI_API_KEY not set")
+        
         last_error: Optional[Exception] = None
         for attempt in range(self.max_retries):
             try:

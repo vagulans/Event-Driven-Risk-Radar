@@ -171,3 +171,31 @@
 - Implemented set_events() to update event list for imminent event detection
 - Added trigger_*() methods for manual triggering of each job type
 - Verified imports work correctly
+
+## US-017: Create edrr/api/endpoints.py
+- Created edrr/api/endpoints.py using aiohttp web framework
+- Implemented EDRRApi class with configurable RiskAggregator and Config
+- Implemented get_current_risk() endpoint at /risk and /risk/{asset}
+- Implemented get_calendar() endpoint at /calendar, /calendar/today, /calendar/week
+- Implemented get_recommendation() endpoint at /recommendation and /recommendation/{asset}
+- Added health_check() endpoint at /health for monitoring
+- All endpoints return JSON responses with proper serialization
+- Added create_api() factory function and run_server() helper
+- Verified imports work correctly
+
+## US-018: Create edrr/engine.py
+- Created edrr/engine.py with RiskRadarEngine class orchestrating all components
+- Initializes all event sources: EconomicCalendarSource, FedCalendarSource, EarningsCalendarSource, NewsMonitorSource, CryptoEventsSource
+- Initializes analyzers: ImpactScorer, RiskAggregator, LLMClient
+- Initializes outputs: CalendarView, AlertManager, RecommendationEngine
+- Initializes Scheduler with callbacks for calendar_poll, news_monitor, risk_recalculate
+- Implemented async start() method to fetch events and begin scheduler
+- Implemented stop() and is_running() for lifecycle management
+- Implemented _fetch_all_events() to aggregate events from all sources
+- Implemented _on_calendar_poll() callback for hourly calendar refresh
+- Implemented _on_news_monitor() callback for 5-minute news polling with deduplication
+- Implemented _on_risk_recalculate() callback for threshold alerts
+- Implemented get_status() returning Dict[str, AssetRisk] for all assets
+- Added get_calendar_today() and get_calendar_week() convenience methods
+- Added get_events() to retrieve current event list
+- Verified imports work correctly
