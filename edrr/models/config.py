@@ -69,6 +69,7 @@ class Config:
         default_factory=lambda: {k: v.copy() for k, v in ASSET_EVENT_CORRELATIONS.items()}
     )
     
-    openai_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY"))
+    anthropic_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("ANTHROPIC_API_KEY"))
     news_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("NEWS_API_KEY"))
-    redis_url: Optional[str] = field(default_factory=lambda: os.environ.get("REDIS_URL"))
+    redis_host: Optional[str] = field(default_factory=lambda: os.environ.get("REDIS_HOST"))
+    redis_port: Optional[int] = field(default_factory=lambda: int(os.environ.get("REDIS_PORT", "6379")))

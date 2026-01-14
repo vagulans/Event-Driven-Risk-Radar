@@ -251,3 +251,22 @@
 - Tests custom config affects score
 - Tests default current_time works
 - All 34 tests pass with pytest
+
+## US-022: Final integration and testing
+- Verified all modules import successfully from main.py
+- Entry point runs without errors: `python3 -m edrr.main --mode check`
+- Fixed mypy errors in sources (economic_calendar.py, fed_calendar.py, crypto_events.py)
+- Refactored event lists from dict-based to tuple-based for proper type inference
+- All 24 source files pass mypy with --ignore-missing-imports
+- Calendar view generates correctly with TODAY/TOMORROW/WEEK format
+- Risk scores calculate correctly using time multipliers and asset correlations
+- All 60 tests pass (26 model tests + 34 scoring tests)
+- Updated README.md with complete EDRR documentation:
+  - Quick start guide with CLI examples
+  - Environment variables table
+  - Project structure overview
+  - Risk levels and recommendations mapping
+  - Event tiers explanation
+  - Time multipliers table
+  - API endpoints documentation
+  - Testing and type checking commands

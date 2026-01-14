@@ -2,17 +2,17 @@ import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
-from openai import AsyncOpenAI
+import anthropic
 
 from edrr.models.events import Event, EventCategory, EventTier
 
 
 class LLMClient:
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-sonnet-4-20250514"):
         self.api_key = api_key
-        self.client: Optional[AsyncOpenAI] = None
+        self.client: Optional[anthropic.AsyncAnthropic] = None
         if api_key:
-            self.client = AsyncOpenAI(api_key=api_key)
+            self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
         self.max_retries = 3
         self.retry_delay = 1.0
@@ -84,23 +84,21 @@ Respond with valid JSON only."""
 
     async def _call_with_retry(self, prompt: str) -> str:
         if not self.client:
-            raise RuntimeError("LLM client not configured - OPENAI_API_KEY not set")
+            raise RuntimeError("LLM client not configured - ANTHROPIC_API_KEY not set")
         
         last_error: Optional[Exception] = None
         for attempt in range(self.max_retries):
             try:
-                response = await self.client.chat.completions.create(
+                response = await self.client.messages.create(
                     model=self.model,
+                    max_tokens=1024,
+                    system="You are a financial market analyst. Respond only with valid JSON.",
                     messages=[
-                        {
-                            "role": "system",
-                            "content": "You are a financial market analyst. Respond only with valid JSON.",
-                        },
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.3,
                 )
-                return response.choices[0].message.content or ""
+                return response.content[0].text if response.content else ""
             except Exception as e:
                 last_error = e
                 if attempt < self.max_retries - 1:

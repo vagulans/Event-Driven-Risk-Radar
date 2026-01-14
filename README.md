@@ -30,9 +30,10 @@ python3 -m edrr.main --mode daemon
 
 | Variable | Description |
 |----------|-------------|
-| `OPENAI_API_KEY` | OpenAI API key for LLM-powered event analysis |
+| `ANTHROPIC_API_KEY` | Anthropic API key for LLM-powered event analysis |
 | `NEWS_API_KEY` | NewsAPI key for emerging event detection |
-| `REDIS_URL` | Optional Redis URL for caching |
+| `REDIS_HOST` | Optional Redis host for caching |
+| `REDIS_PORT` | Optional Redis port (default: 6379) |
 
 ## Project Structure
 
@@ -49,7 +50,7 @@ edrr/
 │   ├── news_monitor.py      # Emerging events from news feeds
 │   └── crypto_events.py     # Protocol upgrades, token unlocks, SEC
 ├── analysis/
-│   ├── llm_client.py      # OpenAI-powered event analysis
+│   ├── llm_client.py      # Anthropic Claude-powered event analysis
 │   ├── impact_scorer.py   # Risk score calculation
 │   └── risk_aggregator.py # Per-asset risk aggregation
 ├── outputs/

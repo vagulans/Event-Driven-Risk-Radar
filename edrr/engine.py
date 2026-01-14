@@ -37,7 +37,7 @@ class RiskRadarEngine:
         
         self.impact_scorer = ImpactScorer(self.config)
         self.risk_aggregator = RiskAggregator(self.config, self.impact_scorer)
-        self.llm_client = LLMClient(api_key=self.config.openai_api_key)
+        self.llm_client = LLMClient(api_key=self.config.anthropic_api_key)
         
         self.calendar_view = CalendarView(self.risk_aggregator, self.config)
         self.alert_manager = AlertManager(self.risk_aggregator, self.config)

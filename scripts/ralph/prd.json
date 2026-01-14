@@ -344,7 +344,7 @@
         "README is complete"
       ],
       "priority": 99,
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
