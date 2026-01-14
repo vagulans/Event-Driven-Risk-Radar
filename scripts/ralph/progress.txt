@@ -1,1 +1,17 @@
 # Progress Log
+
+## US-001: Initialize project structure
+- Created edrr/ with subdirectories: sources/, analysis/, outputs/, api/, models/
+- Added requirements.txt with all required dependencies
+- Created main.py entry point with empty shell
+- Added __init__.py files to all packages
+- Verified all imports work correctly
+
+## US-002: Create edrr/models/events.py
+- Created edrr/models/events.py with full type hints
+- Implemented EventCategory enum (ECONOMIC, FED_SPEAKER, EARNINGS, GEOPOLITICAL, CRYPTO, REGULATORY)
+- Implemented EventTier enum (TIER_1 through TIER_4 with descriptions)
+- Implemented Event dataclass with all required fields
+- Implemented RiskWindow dataclass with events and assets lists
+- Implemented AssetRisk dataclass with optional next_event
+- Verified imports work correctly
